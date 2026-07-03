@@ -1,0 +1,10 @@
+{
+  "fields": {
+    "CustomerName": "Jane Doe",
+    "InvoiceNumber": "INV-2026-0142",
+    "InvoiceDate": "2026-07-01",
+    "DueDate": "2026-07-31",
+    "TotalAmount": "$245.00"
+  },
+  "tables": []
+}

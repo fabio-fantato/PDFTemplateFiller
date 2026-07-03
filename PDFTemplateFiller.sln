@@ -1,0 +1,30 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PDFTemplateFiller", "PDFTemplateFiller\PDFTemplateFiller.csproj", "{37A5B6D4-F688-4279-9B05-2D29FA07B2A4}"
+EndProject
+Project("4886F1E3-951D-4528-8B65-A439D5F28332") = "PDFTemplateFillerTest", "PDFTemplateFillerTest\PDFTemplateFillerTest.csproj", "{2AB6EBA6-3C22-4A11-AD3A-15273CABFCCF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{37A5B6D4-F688-4279-9B05-2D29FA07B2A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37A5B6D4-F688-4279-9B05-2D29FA07B2A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37A5B6D4-F688-4279-9B05-2D29FA07B2A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37A5B6D4-F688-4279-9B05-2D29FA07B2A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AB6EBA6-3C22-4A11-AD3A-15273CABFCCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AB6EBA6-3C22-4A11-AD3A-15273CABFCCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AB6EBA6-3C22-4A11-AD3A-15273CABFCCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AB6EBA6-3C22-4A11-AD3A-15273CABFCCF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CB065CF0-0390-41D9-B658-CF83659A9D58}
+	EndGlobalSection
+EndGlobal

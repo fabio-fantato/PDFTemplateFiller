@@ -1,0 +1,33 @@
+{
+  "fields": {
+    "CustomerName": "Jane Doe",
+    "InvoiceNumber": "INV-2026-0142",
+    "InvoiceDate": "2026-07-01",
+    "DueDate": "2026-07-31",
+    "TotalAmount": "$245.00"
+  },
+  "tables": [
+    {
+      "name": "OrderItems",
+      "page": 1,
+      "x": 50,
+      "y": 225,
+      "width": 495,
+      "rowHeight": 18,
+      "fontSize": 9,
+      "drawBorders": true,
+      "allowPageOverflow": true,
+      "columns": [
+        { "header": "Item", "width": 250, "alignment": "Left" },
+        { "header": "Qty", "width": 80, "alignment": "Right" },
+        { "header": "Price", "width": 165, "alignment": "Right" }
+      ],
+      "rows": [
+        ["Widget A", "2", "$50.00"],
+        ["Widget B", "1", "$25.00"],
+        ["Widget C", "4", "$42.50"],
+        ["Installation Service", "1", "$85.00"]
+      ]
+    }
+  ]
+}
