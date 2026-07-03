@@ -75,3 +75,21 @@ PDFTemplateFiller/
       /background repeats correctly on the continuation page.
 - [ ] Upload the compiled library to the ODC Portal and confirm the `[OSInterface]` icon/name/
       description render as expected before consuming it from an app.
+
+## Embedded fallback font (DejaVu Sans)
+
+- This project bundles DejaVuSans.ttf as an embedded resource inside the library assembly
+  (resources/fonts/DejaVuSans.ttf). The font is licensed permissively (DejaVu fonts) and is
+  used only as a headless rendering fallback when a requested font is not available on the
+  host system.
+
+- Runtime behavior:
+  1. The FontHelper tries to create the requested font family first.
+  2. If the requested family is unavailable, it scans a small list of sensible fallbacks
+     (including the embedded DejaVu Sans) and returns the first usable XFont found.
+  3. If no usable font is found, a final fallback to Courier is used to avoid throwing.
+
+- File location: resources/fonts/DejaVuSans.ttf (embedded into the PDFTemplateFiller assembly).
+
+- If you prefer the font as a loose file copied to output instead of embedded, update
+  PDFTemplateFiller.csproj and re-run the build.
