@@ -6,5 +6,6 @@
     "DueDate": "2026-07-31",
     "TotalAmount": "$245.00"
   },
+  "fieldAlignments": { "TotalAmount": "Right" },
   "tables": []
 }

@@ -49,6 +49,20 @@ namespace PDFTemplateFiller.models
         public Dictionary<string, string> Fields { get; set; } = new();
 
         /// <summary>
+        /// Optional per-field text alignment, keyed by the same field name used in <see cref="Fields"/>
+        /// (without the surrounding "{{ }}"). Values: "Left" (default if omitted), "Right", "Center".
+        ///
+        /// Why this exists: a placeholder's own bounding box only tells you where ITS text started
+        /// - it says nothing about whether that position was meant to be a left edge, a right edge,
+        /// or a center point (e.g. a right-aligned total amount has a bounding box that starts far
+        /// to the left of the label above it, simply because the placeholder text itself was wide).
+        /// A replacement value of a different length than the placeholder can only be positioned
+        /// correctly relative to the ORIGINAL visual alignment if you tell us what that alignment
+        /// was - there is no way to infer it purely from the template's glyph positions.
+        /// </summary>
+        public Dictionary<string, string>? FieldAlignments { get; set; } = new();
+
+        /// <summary>
         /// Structured, multi-row content (tables) drawn on top of the template at explicit
         /// coordinates. See <see cref="PdfTableDefinition"/> for why coordinates are required
         /// instead of a "{{table:Name}}" placeholder.

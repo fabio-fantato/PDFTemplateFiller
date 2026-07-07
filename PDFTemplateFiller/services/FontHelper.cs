@@ -24,10 +24,18 @@ namespace PDFTemplateFiller.services
             "Courier"
         };
 
-        public static XFont GetSafeXFont(PdfDocument? document, string preferredFamily, double size, bool isBold)
+        public static XFont GetSafeXFont(PdfDocument? document, string preferredFamily, double size, bool isBold, bool isItalic = false)
         {
+            XFontStyleEx style = (isBold, isItalic) switch
+            {
+                (true, true) => XFontStyleEx.BoldItalic,
+                (true, false) => XFontStyleEx.Bold,
+                (false, true) => XFontStyleEx.Italic,
+                _ => XFontStyleEx.Regular
+            };
+
             // 1) Try the requested family (preserve literal family string, e.g. "Helvetica-Bold")
-            if (TryCreateFont(preferredFamily, size, out XFont font))
+            if (TryCreateFont(preferredFamily, size, style, out XFont font))
                 return font;
 
             // 2) Try a set of sensible fallbacks (includes DejaVu if available on the system or bundled)
@@ -36,20 +44,20 @@ namespace PDFTemplateFiller.services
                 if (string.Equals(family, preferredFamily, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                if (TryCreateFont(family, size, out font))
+                if (TryCreateFont(family, size, style, out font))
                     return font;
             }
 
             // 3) Last resort: return Courier (very safe)
-            return new XFont("Courier", size);
+            return new XFont("Courier", size, style);
         }
 
-        private static bool TryCreateFont(string family, double size, out XFont font)
+        private static bool TryCreateFont(string family, double size, XFontStyleEx style, out XFont font)
         {
             try
             {
                 // PDFsharp may throw if the family is not available. Wrap in try/catch.
-                font = new XFont(family, size);
+                font = new XFont(family, size, style);
                 return true;
             }
             catch
@@ -79,7 +87,9 @@ namespace PDFTemplateFiller.services
                     return candidate;
             }
 
-            // 2) Check embedded resources in this assembly
+            // 2) Check embedded resources in this assembly - this is the path that actually
+            // matters in a deployed ODC environment, now that the .csproj marks the font as an
+            // EmbeddedResource rather than a loose file copied to the output directory.
             var asm = Assembly.GetExecutingAssembly();
             var names = asm.GetManifestResourceNames();
             var match = names.FirstOrDefault(n => n.EndsWith("DejaVuSans.ttf", StringComparison.OrdinalIgnoreCase));
@@ -103,24 +113,13 @@ namespace PDFTemplateFiller.services
                 }
             }
 
-            // 3) Attempt to download from a reliable upstream (user authorized).
-            try
-            {
-                var downloadUrl = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf";
-                using var client = new System.Net.Http.HttpClient();
-                var bytes = client.GetByteArrayAsync(downloadUrl).GetAwaiter().GetResult();
-                if (bytes != null && bytes.Length > 0)
-                {
-                    var outPath = Path.Combine(Path.GetTempPath(), "DejaVuSans.downloaded.ttf");
-                    File.WriteAllBytes(outPath, bytes);
-                    return outPath;
-                }
-            }
-            catch
-            {
-                // ignore network failures
-            }
-
+            // NOTE: a third fallback that downloaded the font from GitHub at runtime used to be
+            // here. Removed - a network call inside font resolution is a reliability risk in
+            // itself (can hang, be blocked by ODC's outbound network policy, or behave
+            // non-deterministically), which works against the goal of tolerating missing/absent
+            // inputs gracefully. The EmbeddedResource above is now the reliable source of truth;
+            // if it is ever missing, GetFont's caller (EmbeddedFontResolver) throws a clear,
+            // immediate error instead of silently depending on network availability.
             return null;
         }
     }

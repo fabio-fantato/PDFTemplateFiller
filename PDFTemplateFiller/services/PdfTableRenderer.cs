@@ -24,6 +24,16 @@ namespace PDFTemplateFiller.services
                     $"Table '{table.Name}' references page {table.Page}, but the document only has {document.PageCount} page(s).");
             }
 
+            // A table with no column definitions has nothing meaningful to draw (no widths, no
+            // alignment) - skip it rather than throw, consistent with treating an absent/malformed
+            // optional structure as "nothing to do" rather than a hard failure.
+            if (table.Columns is null || table.Columns.Count == 0)
+            {
+                return;
+            }
+
+            List<List<string>> rows = table.Rows ?? new List<List<string>>();
+
             var font = FontHelper.GetSafeXFont(document, "Helvetica", table.FontSize, isBold: false);
             var headerFont = FontHelper.GetSafeXFont(document, "Helvetica-Bold", table.FontSize, isBold: true);
 
@@ -50,13 +60,13 @@ namespace PDFTemplateFiller.services
                     isHeader: true);
             }
 
-            foreach (List<string> row in table.Rows)
+            foreach (List<string>? rawRow in rows)
             {
-                if (row.Count != table.Columns.Count)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{table.Name}' has a row with {row.Count} cell(s) but {table.Columns.Count} column(s) are defined.");
-                }
+                // A row with fewer cells than columns (missing trailing values), more cells than
+                // columns (extras), or an entirely null row entry are all treated as "some data is
+                // missing" rather than a caller error worth failing the whole PDF generation over -
+                // missing cells render as blank, extra cells are ignored.
+                List<string> row = NormalizeRow(rawRow, table.Columns.Count);
 
                 bool rowFitsOnCurrentPage = currentY + table.RowHeight <= pageHeight - pageBottomMargin;
 
@@ -74,6 +84,18 @@ namespace PDFTemplateFiller.services
 
                 currentY = DrawRow(graphics, row, table, font, table.X, currentY, isHeader: false);
             }
+        }
+
+        private static List<string> NormalizeRow(List<string>? rawRow, int expectedCellCount)
+        {
+            var normalized = new List<string>(expectedCellCount);
+            for (int i = 0; i < expectedCellCount; i++)
+            {
+                string? value = rawRow is not null && i < rawRow.Count ? rawRow[i] : null;
+                normalized.Add(value ?? string.Empty);
+            }
+
+            return normalized;
         }
 
         private static double DrawRow(

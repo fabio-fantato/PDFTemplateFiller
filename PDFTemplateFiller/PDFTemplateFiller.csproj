@@ -16,15 +16,13 @@
         <EmbeddedResource Include="Logo.png" />
     </ItemGroup>
 
-    <!-- Bundle an open-source DejaVuSans font for safe headless rendering. Add the actual TTF file
-         to resources/fonts/DejaVuSans.ttf in the repo when you accept the license and want it
-         included in builds. If present, the FontHelper will locate and use it as a fallback. -->
-    <ItemGroup>
-      <!-- The DejaVuSans.ttf is optional. Only include if the file exists in resources/fonts. -->
-      <None Include="resources\fonts\DejaVuSans.ttf" CopyToOutputDirectory="PreserveNewest" Condition="Exists('resources\fonts\DejaVuSans.ttf')" />
-      <None Include="services\ContentStreamTextReplacer.cs" />
-    </ItemGroup>
-
+	<!-- Bundle an open-source DejaVuSans font for safe headless rendering (see
+		 EmbeddedFontResolver.cs, which registers this as the font used for all PDF text drawing
+         on runtimes without an OS font API, such as OutSystems ODC's Linux container). -->
+     <ItemGroup>
+		<EmbeddedResource Include="resources\fonts\DejaVuSans.ttf" Condition="Exists('resources\fonts\DejaVuSans.ttf')" />
+     </ItemGroup>
+	     
     <ItemGroup>
         <!-- OutSystems ODC External Libraries SDK - version confirmed current on NuGet (nuget.org/packages/OutSystems.ExternalLibraries.SDK). -->
         <PackageReference Include="OutSystems.ExternalLibraries.SDK" Version="1.5.0" />

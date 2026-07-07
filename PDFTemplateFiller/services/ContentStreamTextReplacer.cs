@@ -33,21 +33,31 @@ namespace PDFTemplateFiller.services
         /// Replaces every "{{key}}" occurrence found in simple Tj text runs across all pages of the document.
         /// </summary>
         /// <param name="document">An already-loaded PDFsharp document, opened with PdfDocumentOpenMode.Modify.</param>
-        /// <param name="fields">Key/value pairs. Keys are matched without the surrounding "{{ }}".</param>
-        public static void ReplaceFields(PdfDocument document, Dictionary<string, string> fields)
+        /// <param name="fields">Key/value pairs. Keys are matched without the surrounding "{{ }}". Null is treated as empty.</param>
+        /// <returns>
+        /// The subset of <paramref name="fields"/> keys that were actually found and replaced.
+        /// Callers combining this with a fallback mechanism (e.g. PlaceholderOverlayReplacer)
+        /// should only pass the remaining, non-returned keys to that fallback - otherwise a
+        /// placeholder successfully handled here would be processed a second time.
+        /// </returns>
+        public static HashSet<string> ReplaceFields(PdfDocument document, Dictionary<string, string>? fields)
         {
-            if (fields.Count == 0)
+            var matchedKeys = new HashSet<string>(StringComparer.Ordinal);
+
+            if (fields is null || fields.Count == 0)
             {
-                return;
+                return matchedKeys;
             }
 
             foreach (PdfPage page in document.Pages)
             {
-                ReplaceFieldsOnPage(page, fields);
+                ReplaceFieldsOnPage(page, fields, matchedKeys);
             }
+
+            return matchedKeys;
         }
 
-        private static void ReplaceFieldsOnPage(PdfPage page, Dictionary<string, string> fields)
+        private static void ReplaceFieldsOnPage(PdfPage page, Dictionary<string, string> fields, HashSet<string> matchedKeys)
         {
             // A page can have a single content stream or an array of them; PDFsharp exposes this
             // as PdfPage.Contents, a collection of PdfDictionary entries each backed by a PdfStream.
@@ -59,10 +69,8 @@ namespace PDFTemplateFiller.services
                     continue;
                 }
 
-                // NOTE: PdfDictionary.PdfStream.UnfilteredValue is a GET-ONLY property in PDFsharp
-                // (confirmed against the empira/PDFsharp source) - it cannot be assigned to. To read
-                // AND later write back decoded content, use TryUncompress() which replaces the
-                // older TryUnfilter() API.
+                // Read and decompress the stream's bytes so we can regex-match the plain PDF
+                // operators inside it, then write the modified bytes back the same way.
                 stream.TryUncompress();
                 byte[] decoded = stream.Value;
                 string content = Encoding.Latin1.GetString(decoded);
@@ -71,7 +79,7 @@ namespace PDFTemplateFiller.services
                 {
                     string rawText = match.Groups[1].Value;
                     string decodedText = UnescapePdfString(rawText);
-                    string replacedText = ReplacePlaceholders(decodedText, fields);
+                    string replacedText = ReplacePlaceholders(decodedText, fields, matchedKeys);
 
                     if (ReferenceEquals(replacedText, decodedText))
                     {
@@ -96,7 +104,7 @@ namespace PDFTemplateFiller.services
             }
         }
 
-        private static string ReplacePlaceholders(string text, Dictionary<string, string> fields)
+        private static string ReplacePlaceholders(string text, Dictionary<string, string> fields, HashSet<string> matchedKeys)
         {
             if (!text.Contains("{{", StringComparison.Ordinal))
             {
@@ -106,7 +114,15 @@ namespace PDFTemplateFiller.services
             string result = text;
             foreach (var (key, value) in fields)
             {
-                result = result.Replace("{{" + key + "}}", value, StringComparison.Ordinal);
+                string token = "{{" + key + "}}";
+                if (result.Contains(token, StringComparison.Ordinal))
+                {
+                    // A null value (e.g. an explicit "key": null in the request JSON) is treated
+                    // as an empty string rather than left as-is or thrown on - the placeholder is
+                    // still considered "handled" so the overlay fallback does not also process it.
+                    result = result.Replace(token, value ?? string.Empty, StringComparison.Ordinal);
+                    matchedKeys.Add(key);
+                }
             }
 
             return result;

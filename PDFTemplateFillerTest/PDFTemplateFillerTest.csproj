@@ -31,6 +31,14 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Remove="test-resources\fonts\DejaVuSans.ttf" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="test-resources\fonts\DejaVuSans.ttf" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Using Include="Xunit" />
     </ItemGroup>
 </Project>

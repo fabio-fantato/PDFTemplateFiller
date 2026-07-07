@@ -38,8 +38,8 @@ namespace PDFTemplateFillerTest
         {
             // Try to locate an existing scenario folder with a PDF template and a JSON file
             string scenariosRoot = Path.Combine(Directory.GetCurrentDirectory(), "scenarios");
-            string templatePath = null;
-            string jsonPath = null;
+            string? templatePath = null;
+            string? jsonPath = null;
 
             if (Directory.Exists(scenariosRoot))
             {
@@ -109,8 +109,8 @@ namespace PDFTemplateFillerTest
         public void Scenario2_FromExistingFiles_ReadTemplateAndJson()
         {
             string scenariosRoot = Path.Combine(Directory.GetCurrentDirectory(), "scenarios");
-            string templatePath = null;
-            string jsonPath = null;
+            string? templatePath = null;
+            string? jsonPath = null;
 
             if (Directory.Exists(scenariosRoot))
             {
@@ -289,16 +289,16 @@ namespace PDFTemplateFillerTest
             return Encoding.ASCII.GetBytes(builder.ToString());
         }
 
-        private static string LoadJson(string path)
+        private static string LoadJson(string? path)
         {
-            if (File.Exists(path))
+            if (!string.IsNullOrEmpty(path) && File.Exists(path))
             {
                 return File.ReadAllText(path);
             }
             // Try embedded resource fallback
             var asm = Assembly.GetExecutingAssembly();
             var res = asm.GetManifestResourceNames()
-                         .FirstOrDefault(n => n.EndsWith(Path.GetFileName(path), StringComparison.OrdinalIgnoreCase)
+                         .FirstOrDefault(n => (!string.IsNullOrEmpty(path) && Path.GetFileName(path) != null && n.EndsWith(Path.GetFileName(path), StringComparison.OrdinalIgnoreCase))
                                               || (n.IndexOf("scenarios", StringComparison.OrdinalIgnoreCase) >= 0 && n.EndsWith(".json", StringComparison.OrdinalIgnoreCase)));
             if (res != null)
             {
@@ -310,7 +310,7 @@ namespace PDFTemplateFillerTest
             return string.Empty;
         }
 
-        private static byte[] LoadTemplateBytes(string filePathCandidate)
+        private static byte[] LoadTemplateBytes(string? filePathCandidate)
         {
             if (!string.IsNullOrEmpty(filePathCandidate) && File.Exists(filePathCandidate))
             {
@@ -319,8 +319,9 @@ namespace PDFTemplateFillerTest
 
             // Try embedded resource fallback
             var asm = Assembly.GetExecutingAssembly();
+            string? candidateFileName = !string.IsNullOrEmpty(filePathCandidate) ? Path.GetFileName(filePathCandidate) : null;
             var res = asm.GetManifestResourceNames()
-                         .FirstOrDefault(n => n.EndsWith(Path.GetFileName(filePathCandidate), StringComparison.OrdinalIgnoreCase)
+                         .FirstOrDefault(n => (candidateFileName != null && n.EndsWith(candidateFileName, StringComparison.OrdinalIgnoreCase))
                                               || (n.IndexOf("scenarios", StringComparison.OrdinalIgnoreCase) >= 0 && n.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)));
             if (res != null)
             {
